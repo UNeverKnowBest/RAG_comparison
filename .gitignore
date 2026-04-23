@@ -1,0 +1,31 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Neo4j
+neo4j/
+neo4j-data/
+neo4j_logs/
+neo4j_data/
+data/databases/
+data/transactions/
+data/dbms/
+logs/
+conf/
+plugins/
+import/
+metrics/
+*.db
+
+# .env
+.env
+.env.*
+!.env.example
+!.env.template
