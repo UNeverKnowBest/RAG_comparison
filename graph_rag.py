@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_neo4j import Neo4jGraph
 from langchain_ollama import ChatOllama
-from langgraph.graph import END, StateGraph
+from langgraph.graph import END, START, StateGraph
 
 from config import (
     MODEL_NAME,
@@ -34,6 +34,8 @@ def generate_cypher(state: GraphState):
         to convert the multi-hop questions into a Cypher query.
         You need to reason step by step and finally output the only final
         Cypher query.
+        Important: Return only the Cypher query.
+        Do not include any Markdown formatting or explanations.
 
         Graph Schema:{schema}
         Question:{question}
@@ -66,7 +68,7 @@ def generate_anwer(state: GraphState):
 
         Based on the data above, answer the user's question concisely and clearly.
         You need to reason step by step and finally output the only short final
-        answer(a name, date, country, yes/or, etc). If the context is insufficient,
+        answer(a name, date, country, yes/no, etc). If the context is insufficient,
         please output unkonwn.
         Answer  """
     )
@@ -88,6 +90,7 @@ app = workflow.compile()
 if __name__ == "__main__":
     test_question = "Are director of film Move (1970 Film) and director of film Méditerranée (1963 Film) from the same country?"
     result = app.invoke({"question": test_question})
-    print(f"Question : {test_question}\n")
-    print(f"Context : {result['context']}\n")
-    print(f"Answer : {result['answer']}\n")
+    print(f"Question: {test_question}\n")
+    print(f"Cypher:{result['query']}\n")
+    print(f"Query Result:{result['query_result']}\n")
+    print(f"Answer: {result['answer']}\n")

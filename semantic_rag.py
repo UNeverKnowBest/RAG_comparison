@@ -42,7 +42,7 @@ prompt = ChatPromptTemplate.from_template(
         You are a Question Answering assisant power by a RAG, you need
         to answer the multi-hop questions using the given Wikipedia context.
         You need to reson step by step and finally output the only short final
-        answer(a name, date, country, yes/or, etc). If the context is insufficient,
+        answer(a name, date, country, yes/no, etc). If the context is insufficient,
         please output unkonwn.
 
         Context:{context}
