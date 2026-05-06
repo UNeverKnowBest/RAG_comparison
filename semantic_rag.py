@@ -10,10 +10,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
 
-from config import EMBEDDING_NAME, MODEL_NAME, TEMPERATURE
+from src.data_processing.config import BASE_URL, EMBEDDING_NAME, MODEL_NAME, TEMPERATURE
 
-dataset = load_dataset("framolfese/2WikiMultihopQA", split="train")
+dataset = load_dataset("framolfese/2WikiMultihopQA", split="train[:100]")
 docs = []
+
 for data in dataset:
     id = data["id"]
     titles = data["context"]["title"]
@@ -26,7 +27,8 @@ for data in dataset:
                 metadata={"title": title, "id": id},
             )
         )
-embeddings = OllamaEmbeddings(model=EMBEDDING_NAME)
+
+embeddings = OllamaEmbeddings(model=EMBEDDING_NAME, base_url=BASE_URL)
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 chunks = text_splitter.split_documents(docs)
 vector_store = Chroma.from_documents(
@@ -35,13 +37,16 @@ vector_store = Chroma.from_documents(
     collection_name="2WikiMultihopQA",
     persist_directory="./dataset/chromadb",
 )
-retriever = vector_store.as_retriever(search_kwargs={"k": 6})
-llm = ChatOllama(model=MODEL_NAME, temperature=TEMPERATURE)
+retriever = vector_store.as_retriever(search_kwargs={"k": 20})
+embeddings = OllamaEmbeddings(
+    model=EMBEDDING_NAME,
+)
+llm = ChatOllama(model=MODEL_NAME, temperature=TEMPERATURE, base_url=BASE_URL)
 prompt = ChatPromptTemplate.from_template(
     """
         You are a Question Answering assisant power by a RAG, you need
         to answer the multi-hop questions using the given Wikipedia context.
-        You need to reson step by step and finally output the only short final
+        You need to reason step by step and finally output the only short final
         answer(a name, date, country, yes/no, etc). If the context is insufficient,
         please output unkonwn.
 

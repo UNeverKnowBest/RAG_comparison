@@ -6,7 +6,7 @@ from langchain_neo4j import Neo4jGraph
 from langchain_ollama import ChatOllama
 from langgraph.graph import END, START, StateGraph
 
-from config import (
+from src.data_processing.config import (
     MODEL_NAME,
     NEO4J_PASSWORD,
     NEO4J_URI,
