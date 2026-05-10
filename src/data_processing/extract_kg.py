@@ -6,12 +6,10 @@ import pandas as pd
 from config import KG_DIR, NATIONALITY_NORMALIZE, NATIONALITY_RELATIONS, PROCESSED_DIR
 
 
-def clean_name(name, normalize_country=False):
+def clean_name(name):
     if not name:
         return ""
     name = re.sub(r"\s+", " ", str(name)).strip()
-    if normalize_country:
-        return NATIONALITY_NORMALIZE.get(name.lower(), name)
     return name
 
 
@@ -39,7 +37,7 @@ def extract_kg_data(samples):
 
             is_nat = r_norm in NATIONALITY_RELATIONS
             s_clean = clean_name(s_raw)
-            o_clean = clean_name(o_raw, normalize_country=is_nat)
+            o_clean = clean_name(o_raw)
 
             if not s_clean or not o_clean:
                 stats["skipped"] += 1

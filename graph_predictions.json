@@ -1,0 +1,18 @@
+[
+  {
+    "id": "8813f87c0bdd11eba7f7acde48001122",
+    "question": "Who is the mother of the director of film Polish-Russian War (Film)?",
+    "type": "compositional",
+    "gold_answer": "Małgorzata Braunek",
+    "predicted_answer": "Małgorzata Braunek",
+    "retrieved_items": [
+      "Małgorzata Braunek"
+    ],
+    "gold_items": [
+      "Polish-Russian War (film)",
+      "Xawery Żuławski"
+    ],
+    "latency_ms": 251212.7993106842,
+    "token_count": 33
+  }
+]
