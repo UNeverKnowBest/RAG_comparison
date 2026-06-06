@@ -1,10 +1,10 @@
 from typing import List
 
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama, OllamaEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
 
@@ -17,45 +17,31 @@ from src.data_processing.config import (
 )
 
 embeddings = OllamaEmbeddings(model=EMBEDDING_NAME, base_url=BASE_URL)
-
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-
 vector_store = Chroma(persist_directory=str(CHROMA_DIR), embedding_function=embeddings)
-
-retriever = vector_store.as_retriever(search_kwargs={"k": 10})
-
-embeddings = OllamaEmbeddings(
-    model=EMBEDDING_NAME,
-)
 
 llm = ChatOllama(
     base_url=BASE_URL,
     model=MODEL_NAME,
-    num_ctx=8192,
+    num_ctx=4096,
     temperature=TEMPERATURE,
     top_p=0.95,
 )
 
 prompt = ChatPromptTemplate.from_template(
-    """
+    """You are a precise question answering system. Use the Wikipedia passages below to answer the question.
 
-        You are a Question Answering assisant power by a RAG, you need
+Rules:
+Output only the final answer (a name, date, place, yes/no, number, etc.)
+Do not include reasoning, explanations, or any other text
+Keep the answer as short as possible.
+If you do not know the answer, output exactly: unknown
 
-        to answer the multi-hop questions using the given Wikipedia context.
+Context:
+{context}
 
-        You need to reason step by step and finally output the only short final
+Question: {question}
 
-        answer(a name, date, country, yes/no, etc). If the context is insufficient,
-
-        please output unkonwn.
-
-
-
-        Context:{context}
-
-        Question:{question}
-
-        Answer  """
+Answer:"""
 )
 
 chain = prompt | llm | StrOutputParser()
@@ -63,47 +49,35 @@ chain = prompt | llm | StrOutputParser()
 
 class GraphState(TypedDict):
     question: str
-
     answer: str
-
-    context: List[str]
-
-
-def retrieve(state: GraphState):
-
-    question = state["question"]
-
-    documents = retriever.invoke(question)
-
-    return {"context": documents}
+    context: List[Document]
 
 
-def generate(state: GraphState):
+def create_app(k: int = 20):
+    retriever = vector_store.as_retriever(search_kwargs={"k": k})
 
-    question = state["question"]
+    def retrieve(state: GraphState):
+        return {"context": retriever.invoke(state["question"])}
 
-    context_text = "\n\n".join(
-        [f"[{d.metadata['title']}]: {d.page_content}" for d in state["context"]]
-    )
+    def generate(state: GraphState):
+        context_text = "\n\n".join(
+            [f"[{d.metadata['title']}]: {d.page_content}" for d in state["context"]]
+        )
+        response = chain.invoke(
+            {"context": context_text, "question": state["question"]}
+        )
+        return {"answer": response}
 
-    response = chain.invoke({"context": context_text, "question": question})
+    workflow = StateGraph(GraphState)
+    workflow.add_node("retrieve", retrieve)
+    workflow.add_node("generate", generate)
+    workflow.add_edge(START, "retrieve")
+    workflow.add_edge("retrieve", "generate")
+    workflow.add_edge("generate", END)
+    return workflow.compile()
 
-    return {"answer": response}
 
-
-workflow = StateGraph(GraphState)
-
-workflow.add_node("retrieve", retrieve)
-
-workflow.add_node("generate", generate)
-
-workflow.add_edge(START, "retrieve")
-
-workflow.add_edge("retrieve", "generate")
-
-workflow.add_edge("generate", END)
-
-app = workflow.compile()
+app = create_app()
 
 
 if __name__ == "__main__":
@@ -112,9 +86,3 @@ if __name__ == "__main__":
     )
 
     result = app.invoke({"question": test_question})
-
-    print(f"Question : {test_question}\n")
-
-    print(f"Context : {result['context']}\n")
-
-    print(f"Answer : {result['answer']}\n")

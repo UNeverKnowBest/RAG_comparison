@@ -26,4 +26,4 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 BASE_URL = os.getenv("BASE_URL")
 MODEL_NAME = "qwen3.5:9b"
 TEMPERATURE = 0
-EMBEDDING_NAME = "qwen3-embedding:8b"
+EMBEDDING_NAME = "qwen3-embedding:4b"

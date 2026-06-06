@@ -5,7 +5,7 @@ from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from tqdm import tqdm
 
-from src.data_processing.config import CHROMA_DIR, EMBEDDING_NAME, PASSAGES_DIR
+from data_processing.config import CHROMA_DIR, EMBEDDING_NAME, PASSAGES_DIR
 
 
 def build_vector_store(file_path, persist_dir):

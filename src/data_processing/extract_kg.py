@@ -3,7 +3,7 @@ import re
 from collections import defaultdict
 
 import pandas as pd
-from config import KG_DIR, NATIONALITY_NORMALIZE, NATIONALITY_RELATIONS, PROCESSED_DIR
+from config import KG_DIR, PROCESSED_DIR
 
 
 def clean_name(name):
@@ -34,17 +34,12 @@ def extract_kg_data(samples):
 
             s_raw, r_raw, o_raw = triple
             r_norm = normalize_rel(r_raw)
-
-            is_nat = r_norm in NATIONALITY_RELATIONS
             s_clean = clean_name(s_raw)
             o_clean = clean_name(o_raw)
 
             if not s_clean or not o_clean:
                 stats["skipped"] += 1
                 continue
-
-            if is_nat and o_clean != o_raw.strip():
-                stats["norm_count"] += 1
 
             for clean, raw in [(s_clean, s_raw), (o_clean, o_raw)]:
                 entities[clean]["name"] = clean
