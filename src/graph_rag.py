@@ -78,25 +78,30 @@ You are a Neo4j expert writing Cypher queries. You need to write the Cypher quer
 
 Output only the Cypher query with no explanation.
 The query must start with MATCH and end with RETURN. Limit results to 5.
+You need to first identify the intent of the question, extract the entity from the questions and then generate the Cypher based on the intent and entities.
+You have the intent below:
+compositional: traverse a relation path starting from one named entity:
+Comparison: compare two named entities on the same attribute:
+Bridge comparison: bridge through a relation to reach two intermediate entities then compare them:
+Inference: infer new relation based on the exist relation from the schema.
+Use toLower(n.name) CONTAINS toLower('entity')
 
-Use toLower(n.name) CONTAINS toLower('keyword')
 For example:
 Question: Who is the mother of the director of film Polish-Russian War?
+Intent:compositional entity:Polish-Russian War
 Cypher: MATCH (f:Entity)-[:DIRECTOR]->(d:Entity)-[:MOTHER]->(m:Entity)
 WHERE toLower(f.name) CONTAINS toLower('Polish-Russian War')
 RETURN m.name AS answer LIMIT 5
 
 Question: Who is Charles Bretagne Marie De La Trémoille's paternal grandfather?
+Intent:inference entity:Charles Bretagne Marie De La Trémoille
 Cypher: MATCH (p:Entity)-[:FATHER]->(father:Entity)-[:FATHER]->(gf:Entity)
 WHERE toLower(p.name) CONTAINS toLower('Charles Bretagne Marie De La Trémoille')
 RETURN gf.name AS answer LIMIT 5
 
-Question: Who is the maternal grandfather of Countess Johanna Magdalene Of Hanau-Lichtenberg?
-Cypher: MATCH (p:Entity)-[:MOTHER]->(m:Entity)-[:FATHER]->(gf:Entity)
-WHERE toLower(p.name) CONTAINS toLower('Countess Johanna Magdalene Of Hanau-Lichtenberg')
-RETURN gf.name AS answer LIMIT 5
 
 Question: Are director of film Move (1970 Film) and director of film Méditerranée (1963 Film) from the same country?
+Intent: comparison entity:Move entity2:Méditerranée
 Cypher: MATCH (f1:Entity)-[:DIRECTOR]->(d1:Entity)-[:COUNTRY_OF_CITIZENSHIP]->(c1:Entity),
        (f2:Entity)-[:DIRECTOR]->(d2:Entity)-[:COUNTRY_OF_CITIZENSHIP]->(c2:Entity)
 WHERE toLower(f1.name) CONTAINS toLower('Move')
