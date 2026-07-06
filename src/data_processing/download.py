@@ -5,7 +5,6 @@ from datasets import load_dataset
 
 
 def main():
-    print(f"Downloading {DATASET_NAME}")
     ds = load_dataset(DATASET_NAME)
     for split in ds:
         path = RAW_DIR / f"{split}.jsonl"
